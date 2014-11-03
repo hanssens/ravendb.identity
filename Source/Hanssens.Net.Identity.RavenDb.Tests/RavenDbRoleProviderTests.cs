@@ -8,15 +8,13 @@ using NUnit.Framework;
 namespace Hanssens.Net.Identity.RavenDb.Tests
 {
     [TestFixture]
-    public class RavenDbRoleProviderTests
+    public class RavenDbMembershipProviderTests
     {
-
         [Test]
-        public void CreateRole_Should_Insert_Role()
+        public void CreateAccount_Should_CreateAccount()
         {
-            var roleProvider = new RavenDbRoleProvider();
-            roleProvider.CreateRole("Production");
-
+            var membership = new RavenDbMembershipProvider();
+            var target = membership.CreateAccount("username", "password");
         }
 
     }

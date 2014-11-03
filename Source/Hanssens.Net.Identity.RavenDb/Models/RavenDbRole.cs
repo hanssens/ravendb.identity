@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Hanssens.Net.Identity.RavenDb.Models
 {
-    public class RavenDbRoles
+    public class RavenDbRole
     {
         public int Id { get; set; }
         public string Name { get; set; }

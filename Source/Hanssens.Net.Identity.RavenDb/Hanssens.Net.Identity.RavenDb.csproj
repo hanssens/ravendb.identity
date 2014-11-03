@@ -90,7 +90,7 @@
   <ItemGroup>
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Models\Login.cs" />
-    <Compile Include="Models\RavenDbRoles.cs" />
+    <Compile Include="Models\RavenDbRole.cs" />
     <Compile Include="Models\RavenDbUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenDbMembershipProvider.cs" />

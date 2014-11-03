@@ -51,7 +51,15 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override void CreateRole(string roleName)
         {
-            throw new NotImplementedException();
+            if (RoleExists(roleName)) return;
+
+            var role = new RavenDbRole()
+            {
+                Name = roleName
+            };
+
+            CurrentSession.Store(role);
+            CurrentSession.SaveChanges();
         }
 
         public override bool DeleteRole(string roleName, bool throwOnPopulatedRole)
@@ -94,7 +102,7 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool RoleExists(string roleName)
         {
-            return CurrentSession.Query<RavenDbRoles>().Any(r => r.Name == roleName);
+            return CurrentSession.Query<RavenDbRole>().Any(r => r.Name == roleName);
         }
 
         public void Dispose()
