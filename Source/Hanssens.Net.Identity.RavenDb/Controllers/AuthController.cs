@@ -35,7 +35,7 @@ namespace Hanssens.Net.Identity.RavenDb.Controllers
                 return View("Login", model);
             }
 
-            return RedirectToAction("Overview", "Home");
+            return Redirect("~/");
         }
 
         [Authorize]
