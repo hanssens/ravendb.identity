@@ -98,7 +98,16 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override string[] GetRolesForUser(string username)
         {
-            throw new NotImplementedException();
+            var roles = new List<string>();
+            using (var session = DataContext.OpenSession())
+            {
+                var user = session.Query<RavenDbUser>().FirstOrDefault(u => u.Username == username);
+                if (user == null) throw new Exception("User not found");
+
+                roles = user.Roles.ToList();
+            }
+
+            return roles.ToArray();
         }
 
         public override string[] GetUsersInRole(string roleName)
