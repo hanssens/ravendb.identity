@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Security;
 using System.Configuration;
+using Raven.Client.Linq;
 
 namespace Hanssens.Net.Identity.RavenDb
 {
@@ -34,7 +35,25 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override void AddUsersToRoles(string[] usernames, string[] roleNames)
         {
-            throw new NotImplementedException();
+            using (var session = DataContext.OpenSession())
+            {
+                var users = session.Query<RavenDbUser>().Where(u => u.Username.In(roleNames));
+                foreach (var user in users)
+                {
+                    var roles = user.Roles.ToList();
+                    roles.AddRange(roleNames);
+
+                    user.Roles = roles.Distinct();
+                }
+
+                session.SaveChanges();
+            }
+
+            foreach (var username in usernames)
+            {
+                
+            }
+            
         }
 
         public override string ApplicationName
