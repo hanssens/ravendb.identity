@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,12 +16,12 @@ namespace Hanssens.Net.Identity.RavenDb.Models
         public string AccountConfirmationToken { get; set; }
         public DateTime? PasswordLastChangedOn { get; set; }
         public DateTime CreatedOn { get; set; }
-
-
+        public Dictionary<string, object> Attributes { get; set; }
         public IEnumerable<string> Roles { get; set; }
 
         public RavenDbUser()
         {
+            Attributes = new Dictionary<string, object>();
             Roles = new List<string>();
         }
     }

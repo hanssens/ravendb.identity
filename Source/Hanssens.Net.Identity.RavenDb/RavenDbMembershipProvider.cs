@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using System.Data;
 using System.Security;
 using System.Web.Security;
 using Hanssens.Net.Identity.RavenDb.Models;
@@ -45,11 +46,19 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override string CreateAccount(string userName, string password, bool requireConfirmationToken)
         {
-            return CreateUserAndAccount(userName, password, requireConfirmationToken);
+            return CreateUserAndAccount(userName, password, requireConfirmationToken, null);
         }
 
         public override string CreateUserAndAccount(string userName, string password, bool requireConfirmation, IDictionary<string, object> values)
         {
+            RavenQueryStatistics stats;
+            var exists = CurrentSession.Query<RavenDbUser>()
+                .Statistics(out stats)
+                .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                .Any(u => u.Username == userName);
+
+            if (exists) throw new DuplicateNameException("User already exists");
+
             var user = new RavenDbUser()
             {
                 CreatedOn = DateTime.Now,
