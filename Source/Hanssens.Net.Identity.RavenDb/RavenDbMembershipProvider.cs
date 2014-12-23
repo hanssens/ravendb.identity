@@ -2,6 +2,7 @@
 using System.Data;
 using System.Security;
 using System.Web.Security;
+using Hanssens.Net.Cryptography;
 using Hanssens.Net.Identity.RavenDb.Models;
 using Raven.Client;
 using Raven.Client.Document;
@@ -59,11 +60,14 @@ namespace Hanssens.Net.Identity.RavenDb
 
             if (exists) throw new DuplicateNameException("User already exists");
 
+            // hash the password
+            var hashedPassword = PasswordHash.CreateHash(password);
+
             var user = new RavenDbUser()
             {
                 CreatedOn = DateTime.Now,
                 Username = userName,
-                Password = password
+                Password = hashedPassword
             };
 
             CurrentSession.Store(user);
@@ -261,10 +265,15 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool ValidateUser(string username, string password)
         {
-            return CurrentSession.Query<RavenDbUser>()
-                .Where(user => user.Username == username)
-                .Where(user => user.Password == password)
-                .Any();
+            RavenQueryStatistics stats;
+            var user = CurrentSession.Query<RavenDbUser>()
+                .Statistics(out stats)
+                .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                .SingleOrDefault(u => u.Username == username);
+
+            if (user == null) throw new NullReferenceException("User not found");
+
+            return PasswordHash.ValidatePassword(password, user.Password);
         }
 
         public void Dispose()

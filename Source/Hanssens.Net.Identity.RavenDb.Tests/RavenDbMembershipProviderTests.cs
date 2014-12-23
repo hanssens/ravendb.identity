@@ -47,5 +47,23 @@ namespace Hanssens.Net.Identity.RavenDb.Tests
             Assert.Fail("Expected was a DuplicateNameException");
         }
 
+        [Test]
+        public void CreateAccount_Should_Hash_The_Password_And_Be_Validatable()
+        {
+            // arrange
+            var expectedUsername = Guid.NewGuid().ToString("N");
+            var expectedPassword = "12345";
+            var membershipProvider = new RavenDbMembershipProvider();
+
+            // act
+            var givenUsername = membershipProvider.CreateAccount(expectedUsername, expectedPassword);
+
+            var target = membershipProvider.ValidateUser(expectedUsername, expectedPassword);
+            
+            // assert
+            target.Should().BeTrue();
+
+        }
+
     }
 }
