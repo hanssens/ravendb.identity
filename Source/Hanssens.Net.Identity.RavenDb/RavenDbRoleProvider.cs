@@ -37,7 +37,7 @@ namespace Hanssens.Net.Identity.RavenDb
         {
             using (var session = DataContext.OpenSession())
             {
-                var users = session.Query<RavenDbUser>().Where(u => u.Username.In(roleNames));
+                var users = session.Query<RavenDbUser>().Where(u => u.Username.In(usernames));
                 foreach (var user in users)
                 {
                     var roles = user.Roles.ToList();
