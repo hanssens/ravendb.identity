@@ -155,7 +155,22 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
         {
-            throw new NotImplementedException();
+            RavenQueryStatistics stats;
+            var user = CurrentSession.Query<RavenDbUser>()
+                .Statistics(out stats)
+                .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                .Any(u => u.Username == username);
+
+            try
+            {
+                CurrentSession.Delete(user);
+                CurrentSession.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }  
         }
 
         public override bool EnablePasswordReset
