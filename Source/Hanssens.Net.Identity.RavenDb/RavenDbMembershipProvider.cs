@@ -139,8 +139,35 @@ namespace Hanssens.Net.Identity.RavenDb
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
-        {
-            throw new NotImplementedException();
+        {      
+            RavenQueryStatistics stats;
+            var user = CurrentSession.Query<RavenDbUser>()
+                .Statistics(out stats)
+                .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                .SingleOrDefault(u => u.Username == username);
+
+            try
+            {
+                // Delete old user
+                CurrentSession.Delete(user);
+                CurrentSession.SaveChanges();
+
+                // Hash the new password
+                var hashedPassword = PasswordHash.CreateHash(newPassword);
+
+                // Update the user with the new hashed password
+                user.Password = hashedPassword;
+
+                // Save the updated user
+                CurrentSession.Store(user);
+                CurrentSession.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion, string newPasswordAnswer)
