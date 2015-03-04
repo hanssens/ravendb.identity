@@ -182,15 +182,14 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
         {
-            RavenQueryStatistics stats;
             var user = CurrentSession.Query<RavenDbUser>()
-                .Statistics(out stats)
-                .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
-                .Any(u => u.Username == username);
+                    .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(2)))
+                    .FirstOrDefault(u => u.Username.Equals(username));
 
             try
             {
-                CurrentSession.Delete(user);
+                var entity = CurrentSession.Load<RavenDbUser>(user.Id);
+                CurrentSession.Delete(entity);
                 CurrentSession.SaveChanges();
                 return true;
             }
