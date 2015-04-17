@@ -139,12 +139,15 @@ namespace Hanssens.Net.Identity.RavenDb
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
-        {      
-            RavenQueryStatistics stats;
+        { 
             var user = CurrentSession.Query<RavenDbUser>()
-                .Statistics(out stats)
-                .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
-                .SingleOrDefault(u => u.Username == username);
+                .Single(u => u.Username == username);
+
+            if(!string.IsNullOrEmpty(oldPassword))
+            {
+                if (!PasswordHash.ValidatePassword(oldPassword, user.Password))
+                    throw new Exception("Old passwords do not match");
+            }            
 
             try
             {
@@ -166,7 +169,7 @@ namespace Hanssens.Net.Identity.RavenDb
             }
             catch (Exception ex)
             {
-                return false;
+                throw ex;
             }
         }
 
