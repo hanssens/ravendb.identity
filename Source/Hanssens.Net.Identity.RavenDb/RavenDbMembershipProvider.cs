@@ -139,8 +139,38 @@ namespace Hanssens.Net.Identity.RavenDb
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
-        {
-            throw new NotImplementedException();
+        { 
+            var user = CurrentSession.Query<RavenDbUser>()
+                .Single(u => u.Username == username);
+
+            if(!string.IsNullOrEmpty(oldPassword))
+            {
+                if (!PasswordHash.ValidatePassword(oldPassword, user.Password))
+                    throw new Exception("Old passwords do not match");
+            }            
+
+            try
+            {
+                // Delete old user
+                CurrentSession.Delete(user);
+                CurrentSession.SaveChanges();
+
+                // Hash the new password
+                var hashedPassword = PasswordHash.CreateHash(newPassword);
+
+                // Update the user with the new hashed password
+                user.Password = hashedPassword;
+
+                // Save the updated user
+                CurrentSession.Store(user);
+                CurrentSession.SaveChanges();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion, string newPasswordAnswer)
@@ -155,7 +185,21 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
         {
-            throw new NotImplementedException();
+            var user = CurrentSession.Query<RavenDbUser>()
+                    .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(2)))
+                    .FirstOrDefault(u => u.Username.Equals(username));
+
+            try
+            {
+                var entity = CurrentSession.Load<RavenDbUser>(user.Id);
+                CurrentSession.Delete(entity);
+                CurrentSession.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }  
         }
 
         public override bool EnablePasswordReset
