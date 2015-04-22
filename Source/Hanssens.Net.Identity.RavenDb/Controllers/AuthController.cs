@@ -15,14 +15,14 @@ namespace Hanssens.Net.Identity.RavenDb.Controllers
     public class AuthController : Controller
     {
         [HttpGet]
-        public ActionResult Login()
+        public virtual ActionResult Login()
         {
             var model = new Login();
             return View(model);
         }
 
         [HttpPost]
-        public ActionResult Login(Login model)
+        public virtual ActionResult Login(Login model)
         {
             if (!ModelState.IsValid) return View("Login", model);
 
@@ -39,7 +39,7 @@ namespace Hanssens.Net.Identity.RavenDb.Controllers
         }
 
         [Authorize]
-        public ActionResult Logout()
+        public virtual ActionResult Logout()
         {
             WebSecurity.Logout();
             Session.Clear();
