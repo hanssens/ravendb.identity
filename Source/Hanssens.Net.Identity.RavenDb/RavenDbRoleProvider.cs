@@ -125,7 +125,30 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override void RemoveUsersFromRoles(string[] usernames, string[] roleNames)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (var session = DataContext.OpenSession())
+                {
+                    var users = session.Query<RavenDbUser>().Where(u => u.Username.In(usernames));
+                    foreach (var user in users)
+                    {
+                        var roles = user.Roles.ToList();
+
+                        foreach (var role in roleNames)
+                        {
+                            roles.Remove(role);
+                        }
+
+                        user.Roles = roles.Distinct();
+                    }
+
+                    session.SaveChanges();
+                }
+            } 
+            catch(Exception ex) 
+            {
+                throw ex;
+            }
         }
 
         public override bool RoleExists(string roleName)
