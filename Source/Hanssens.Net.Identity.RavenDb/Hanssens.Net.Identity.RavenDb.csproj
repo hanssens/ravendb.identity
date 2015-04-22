@@ -32,8 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Hanssens.Net">
-      <HintPath>..\packages\Hanssens.Net.Extensions.1.0.0.0\lib\net45\Hanssens.Net.dll</HintPath>
+    <Reference Include="Hanssens.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hanssens.Net.Extensions.1.1.0.0\lib\net45\Hanssens.Net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
