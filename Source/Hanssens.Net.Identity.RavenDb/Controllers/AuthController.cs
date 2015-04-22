@@ -31,11 +31,23 @@ namespace Hanssens.Net.Identity.RavenDb.Controllers
 
             if (!authorized)
             {
+                OnLoginFailed();
                 ModelState.AddModelError("Username", "Authorization_InvalidUsernamePasswordCombination");
                 return View("Login", model);
             }
 
+            OnLoginSucceeded();
             return Redirect("~/");
+        }
+
+        protected virtual void OnLoginSucceeded()
+        {
+            // Empty by design
+        }
+
+        protected virtual void OnLoginFailed()
+        {
+            // Empty by design
         }
 
         [Authorize]
