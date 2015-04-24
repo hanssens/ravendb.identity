@@ -315,7 +315,7 @@ namespace Hanssens.Net.Identity.RavenDb
                 .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
                 .SingleOrDefault(u => u.Username == username);
 
-            if (user == null) throw new NullReferenceException("User not found");
+            if (user == null) return false;
 
             return PasswordHash.ValidatePassword(password, user.Password);
         }

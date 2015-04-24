@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hanssens.Net.Identity.RavenDb", "Hanssens.Net.Identity.RavenDb\Hanssens.Net.Identity.RavenDb.csproj", "{7D01229A-364C-42B0-8DFB-FDF36BE538EE}"
 EndProject
@@ -15,6 +15,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hanssens.Net.Identity.RavenDb.Tests", "Hanssens.Net.Identity.RavenDb.Tests\Hanssens.Net.Identity.RavenDb.Tests.csproj", "{664E0689-DDA6-4EC4-B6C5-1C22F7BD5D17}"
 EndProject
 Global
+	GlobalSection(CodealikeProperties) = postSolution
+		SolutionGuid = 1f4eff65-851c-45e0-8d48-5984b4271553
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
