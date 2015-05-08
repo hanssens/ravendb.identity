@@ -309,11 +309,16 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool ValidateUser(string username, string password)
         {
-            RavenQueryStatistics stats;
-            var user = CurrentSession.Query<RavenDbUser>()
-                .Statistics(out stats)
-                .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
-                .SingleOrDefault(u => u.Username == username);
+            RavenDbUser user = null;
+
+            using (var session = DataContext.OpenSession())
+            {
+                RavenQueryStatistics stats;
+                user = session.Query<RavenDbUser>()
+                    .Statistics(out stats)
+                    .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                    .SingleOrDefault(u => u.Username == username);
+            }
 
             if (user == null) return false;
 
