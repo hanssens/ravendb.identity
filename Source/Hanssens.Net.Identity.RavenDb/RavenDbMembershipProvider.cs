@@ -83,7 +83,27 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override string GeneratePasswordResetToken(string userName, int tokenExpirationInMinutesFromNow)
         {
-            throw new NotImplementedException();
+            RavenDbUser user = null;
+
+            using (var session = DataContext.OpenSession())
+            {
+                RavenQueryStatistics stats;
+                user = session.Query<RavenDbUser>()
+                    .Statistics(out stats)
+                    .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                    .SingleOrDefault(u => u.Username == userName);
+
+                var original = session.Load<RavenDbUser>(user.Id);
+                session.Delete(original);
+                session.SaveChanges();
+
+                user.PasswordToken = Guid.NewGuid().ToString("N");
+
+                session.Store(user);
+                session.SaveChanges();
+            }
+
+            return user.PasswordToken;
         }
 
         public override ICollection<OAuthAccountData> GetAccountsForUser(string userName)
@@ -180,7 +200,23 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override System.Web.Security.MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out System.Web.Security.MembershipCreateStatus status)
         {
-            throw new NotImplementedException();
+            status = new System.Web.Security.MembershipCreateStatus();
+
+            // hash the password
+            var hashedPassword = PasswordHash.CreateHash(password);
+            
+            var user = new RavenDbUser
+            {
+                CreatedOn = DateTime.Now,
+                Username = username,
+                Password = hashedPassword,
+                Email = email                
+            };
+
+            CurrentSession.Store(user);
+            CurrentSession.SaveChanges();
+
+            return user;
         }
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
