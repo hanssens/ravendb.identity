@@ -143,7 +143,38 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool ResetPasswordWithToken(string token, string newPassword)
         {
-            throw new NotImplementedException();
+            try
+            {
+                RavenDbUser user;
+                using (var session = DataContext.OpenSession())
+                {
+                    RavenQueryStatistics stats;
+                    user = session.Query<RavenDbUser>()
+                        .Statistics(out stats)
+                        .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                        .SingleOrDefault(u => u.PasswordToken == token);
+
+                    if (user == null)
+                        throw new Exception("Couldnt find user");
+
+                    user.Password = PasswordHash.CreateHash(newPassword);
+
+                    var original = session.Load<RavenDbUser>(user.Id);
+                    session.Delete(original);
+                    session.SaveChanges();
+
+                    user.PasswordToken = null;
+
+                    session.Store(user);
+                    session.SaveChanges();
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public override string ApplicationName
@@ -159,15 +190,15 @@ namespace Hanssens.Net.Identity.RavenDb
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
-        { 
+        {
             var user = CurrentSession.Query<RavenDbUser>()
                 .Single(u => u.Username == username);
 
-            if(!string.IsNullOrEmpty(oldPassword))
+            if (!string.IsNullOrEmpty(oldPassword))
             {
                 if (!PasswordHash.ValidatePassword(oldPassword, user.Password))
                     throw new Exception("Old passwords do not match");
-            }            
+            }
 
             try
             {
@@ -204,13 +235,13 @@ namespace Hanssens.Net.Identity.RavenDb
 
             // hash the password
             var hashedPassword = PasswordHash.CreateHash(password);
-            
+
             var user = new RavenDbUser
             {
                 CreatedOn = DateTime.Now,
                 Username = username,
                 Password = hashedPassword,
-                Email = email                
+                Email = email
             };
 
             CurrentSession.Store(user);
@@ -235,7 +266,7 @@ namespace Hanssens.Net.Identity.RavenDb
             catch (Exception ex)
             {
                 return false;
-            }  
+            }
         }
 
         public override bool EnablePasswordReset
