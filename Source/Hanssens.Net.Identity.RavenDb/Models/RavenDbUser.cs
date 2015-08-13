@@ -15,6 +15,7 @@ namespace Hanssens.Net.Identity.RavenDb.Models
         public string Email { get; set; }
         public string AccountConfirmationToken { get; set; }
         public string PasswordToken { get; set; }
+        public DateTime TimeValidPasswordToken { get; set; }
         public DateTime? PasswordLastChangedOn { get; set; }
         public DateTime CreatedOn { get; set; }
         public Dictionary<string, object> Attributes { get; set; }

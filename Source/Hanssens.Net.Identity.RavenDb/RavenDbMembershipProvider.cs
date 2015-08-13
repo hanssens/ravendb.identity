@@ -85,6 +85,12 @@ namespace Hanssens.Net.Identity.RavenDb
         {
             RavenDbUser user = null;
 
+            if (string.IsNullOrEmpty(userName))
+                throw new NullReferenceException("Username");
+
+            if (tokenExpirationInMinutesFromNow == 0)
+                throw new Exception("Experation minutes must be greater than 0");
+
             using (var session = DataContext.OpenSession())
             {
                 RavenQueryStatistics stats;
@@ -97,6 +103,7 @@ namespace Hanssens.Net.Identity.RavenDb
                 session.Delete(original);
                 session.SaveChanges();
 
+                user.TimeValidPasswordToken = DateTime.Now.AddMinutes(tokenExpirationInMinutesFromNow);
                 user.PasswordToken = Guid.NewGuid().ToString("N");
 
                 session.Store(user);
