@@ -83,7 +83,34 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override string GeneratePasswordResetToken(string userName, int tokenExpirationInMinutesFromNow)
         {
-            throw new NotImplementedException();
+            RavenDbUser user = null;
+
+            if (string.IsNullOrEmpty(userName))
+                throw new NullReferenceException("Username");
+
+            if (tokenExpirationInMinutesFromNow == 0)
+                throw new Exception("Experation minutes must be greater than 0");
+
+            using (var session = DataContext.OpenSession())
+            {
+                RavenQueryStatistics stats;
+                user = session.Query<RavenDbUser>()
+                    .Statistics(out stats)
+                    .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                    .SingleOrDefault(u => u.Username == userName);
+
+                var original = session.Load<RavenDbUser>(user.Id);
+                session.Delete(original);
+                session.SaveChanges();
+
+                user.TimeValidPasswordToken = DateTime.Now.AddMinutes(tokenExpirationInMinutesFromNow);
+                user.PasswordToken = Guid.NewGuid().ToString("N");
+
+                session.Store(user);
+                session.SaveChanges();
+            }
+
+            return user.PasswordToken;
         }
 
         public override ICollection<OAuthAccountData> GetAccountsForUser(string userName)
@@ -123,7 +150,39 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override bool ResetPasswordWithToken(string token, string newPassword)
         {
-            throw new NotImplementedException();
+            try
+            {
+                RavenDbUser user;
+                using (var session = DataContext.OpenSession())
+                {
+                    RavenQueryStatistics stats;
+                    user = session.Query<RavenDbUser>()
+                        .Statistics(out stats)
+                        .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(5)))
+                        .SingleOrDefault(u => u.PasswordToken == token);
+
+                    if (user == null)
+                        throw new Exception("Couldnt find user");
+
+                    user.Password = PasswordHash.CreateHash(newPassword);
+
+                    var original = session.Load<RavenDbUser>(user.Id);
+                    session.Delete(original);
+                    session.SaveChanges();
+
+                    user.PasswordToken = null;
+                    user.TimeValidPasswordToken = null;
+
+                    session.Store(user);
+                    session.SaveChanges();
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         public override string ApplicationName
@@ -139,15 +198,15 @@ namespace Hanssens.Net.Identity.RavenDb
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
-        { 
+        {
             var user = CurrentSession.Query<RavenDbUser>()
                 .Single(u => u.Username == username);
 
-            if(!string.IsNullOrEmpty(oldPassword))
+            if (!string.IsNullOrEmpty(oldPassword))
             {
                 if (!PasswordHash.ValidatePassword(oldPassword, user.Password))
                     throw new Exception("Old passwords do not match");
-            }            
+            }
 
             try
             {
@@ -180,7 +239,23 @@ namespace Hanssens.Net.Identity.RavenDb
 
         public override System.Web.Security.MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out System.Web.Security.MembershipCreateStatus status)
         {
-            throw new NotImplementedException();
+            status = new System.Web.Security.MembershipCreateStatus();
+
+            // hash the password
+            var hashedPassword = PasswordHash.CreateHash(password);
+
+            var user = new RavenDbUser
+            {
+                CreatedOn = DateTime.Now,
+                Username = username,
+                Password = hashedPassword,
+                Email = email
+            };
+
+            CurrentSession.Store(user);
+            CurrentSession.SaveChanges();
+
+            return user;
         }
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
@@ -199,7 +274,7 @@ namespace Hanssens.Net.Identity.RavenDb
             catch (Exception ex)
             {
                 return false;
-            }  
+            }
         }
 
         public override bool EnablePasswordReset
