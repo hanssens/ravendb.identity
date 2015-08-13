@@ -171,6 +171,7 @@ namespace Hanssens.Net.Identity.RavenDb
                     session.SaveChanges();
 
                     user.PasswordToken = null;
+                    user.TimeValidPasswordToken = null;
 
                     session.Store(user);
                     session.SaveChanges();
