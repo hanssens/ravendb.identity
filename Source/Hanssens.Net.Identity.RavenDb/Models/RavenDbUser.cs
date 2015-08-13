@@ -26,5 +26,13 @@ namespace Hanssens.Net.Identity.RavenDb.Models
             Attributes = new Dictionary<string, object>();
             Roles = new List<string>();
         }
+
+        public bool HasValidToken()
+        {
+            if (DateTime.Now > TimeValidPasswordToken)
+                return false;
+
+            return true;
+        }
     }
 }
